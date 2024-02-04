@@ -153,6 +153,8 @@ namespace GlazeWM.Domain.UserConfigs
         "recent" => new FocusWorkspaceRecentCommand(),
         "prev" => new FocusWorkspaceSequenceCommand(Sequence.Previous),
         "next" => new FocusWorkspaceSequenceCommand(Sequence.Next),
+        "monitorprev" => new FocusWorkspaceSequenceCommand(Sequence.MonitorPrevious),
+        "monitornext" => new FocusWorkspaceSequenceCommand(Sequence.MonitorNext),
         _ when IsValidWorkspace(commandParts[2]) => new FocusWorkspaceCommand(commandParts[2]),
         _ => throw new ArgumentException(null, nameof(commandParts)),
       };

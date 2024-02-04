@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using GlazeWM.Domain.Common.Enums;
+using GlazeWM.Domain.Monitors;
 using GlazeWM.Domain.UserConfigs;
 using GlazeWM.Domain.Workspaces.Commands;
 using GlazeWM.Infrastructure.Bussing;
@@ -25,19 +26,31 @@ namespace GlazeWM.Domain.Workspaces.CommandHandlers
 
     public CommandResponse Handle(FocusWorkspaceSequenceCommand command)
     {
+      var isMonitor = false;
       var direction = command.Direction;
       var workspacesConfigs = _userConfigService.WorkspaceConfigs;
+      if (direction == Sequence.MonitorPrevious) {
+        isMonitor = true;
+        direction = Sequence.Previous;
+      } else if (direction == Sequence.MonitorNext) {
+        isMonitor = true;
+        direction = Sequence.Next;
+      }
+
+      // Get focused workspace + monitor.
+      var focusedWorkspace = _workspaceService.GetFocusedWorkspace();
+      var focusedMonitor = MonitorService.GetMonitorFromChildContainer(focusedWorkspace);
 
       // Get active workspaces in order of their config index.
       var activeWorkspaces = _workspaceService.GetActiveWorkspaces();
-      var sortedWorkspaces = activeWorkspaces
-        .OrderBy((workspace) =>
-          workspacesConfigs.FindIndex((config) => config.Name == workspace.Name)
-        )
-        .ToList();
+      var sortedWorkspacesList = activeWorkspaces
+          .OrderBy(workspace => workspacesConfigs.FindIndex(config => config.Name == workspace.Name));
+
+      var sortedWorkspaces = isMonitor ? sortedWorkspacesList
+            .Where(workspace => MonitorService.GetMonitorFromChildContainer(workspace) == focusedMonitor)
+            .ToList() : sortedWorkspacesList.ToList();
 
       // Get config index of the currently focused workspace.
-      var focusedWorkspace = _workspaceService.GetFocusedWorkspace();
       var configIndex = sortedWorkspaces.IndexOf(focusedWorkspace);
 
       // Get index in `sortedWorkspaces` of target workspace to focus. Wrap around to start if

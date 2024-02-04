@@ -552,7 +552,7 @@ window_rules:
 # Available commands
 
 - focus \<left | right | up | down>
-- focus workspace \<prev | next | recent>
+- focus workspace \<prev | next | monitorprev | monitornext | recent>
 - focus workspace \<workspace name>
 - move \<left | right | up | down>
 - move to workspace \<workspace name>

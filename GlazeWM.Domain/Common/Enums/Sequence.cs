@@ -6,6 +6,8 @@ namespace GlazeWM.Domain.Common.Enums
   public enum Sequence
   {
     Previous,
-    Next
+    Next,
+    MonitorPrevious,
+    MonitorNext
   }
 }
