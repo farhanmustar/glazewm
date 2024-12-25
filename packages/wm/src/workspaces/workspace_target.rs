@@ -7,5 +7,7 @@ pub enum WorkspaceTarget {
   PreviousActive,
   Next,
   Previous,
+  NextInMonitor,
+  PreviousInMonitor,
   Direction(Direction),
 }

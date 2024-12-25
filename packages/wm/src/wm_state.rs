@@ -18,7 +18,7 @@ use crate::{
     Container, RootContainer, WindowContainer,
   },
   monitors::{commands::add_monitor, Monitor},
-  user_config::{BindingModeConfig, UserConfig},
+  user_config::{BindingModeConfig, UserConfig, WorkspaceConfig},
   windows::{commands::manage_window, traits::WindowGetters, WindowState},
   wm_event::WmEvent,
   workspaces::{Workspace, WorkspaceTarget},
@@ -382,7 +382,60 @@ impl WmState {
 
         (previous_workspace_name, previous_workspace)
       }
+      WorkspaceTarget::NextInMonitor => {
+        let monitor_workspaces: Vec<WorkspaceConfig> = origin_workspace
+          .monitor()
+          .expect("Failed to get monitor of given workspace.")
+          .workspaces()
+          .iter()
+          .map(|workspace| workspace.config())
+          .collect();
+        let origin_name = origin_workspace.config().name.clone();
+        let origin_index = monitor_workspaces
+          .iter()
+          .position(|workspace| workspace.name == origin_name)
+          .context("Failed to get index of given workspace.")?;
 
+        let next_workspace_config = monitor_workspaces
+          .get(origin_index + 1)
+          .or_else(|| monitor_workspaces.first());
+
+        let next_workspace_name =
+          next_workspace_config.map(|config| config.name.clone());
+
+        let next_workspace = next_workspace_name
+          .as_ref()
+          .and_then(|name| self.workspace_by_name(name));
+
+        (next_workspace_name, next_workspace)
+      }
+      WorkspaceTarget::PreviousInMonitor => {
+        let monitor_workspaces: Vec<WorkspaceConfig> = origin_workspace
+          .monitor()
+          .expect("Failed to get monitor of given workspace.")
+          .workspaces()
+          .iter()
+          .map(|workspace| workspace.config())
+          .collect();
+        let origin_name = origin_workspace.config().name.clone();
+        let origin_index = monitor_workspaces
+          .iter()
+          .position(|workspace| workspace.name == origin_name)
+          .context("Failed to get index of given workspace.")?;
+
+        let previous_workspace_config = monitor_workspaces.get(
+          origin_index.checked_sub(1).unwrap_or(monitor_workspaces.len() - 1),
+        );
+
+        let previous_workspace_name =
+          previous_workspace_config.map(|config| config.name.clone());
+
+        let previous_workspace = previous_workspace_name
+          .as_ref()
+          .and_then(|name| self.workspace_by_name(name));
+
+        (previous_workspace_name, previous_workspace)
+      }
       WorkspaceTarget::Direction(direction) => {
         let origin_monitor =
           origin_workspace.monitor().context("No focused monitor.")?;
